@@ -1,0 +1,7 @@
+meta: Credentials for PostgreSQl Database
+credentials:
+  dbname:
+  host:
+  port:
+  user:
+  password:

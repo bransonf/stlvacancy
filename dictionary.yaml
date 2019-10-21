@@ -1,0 +1,106 @@
+meta: Data Dictionary for STL Vacancy Dataset
+dictionary:
+  Parcel Identifier:
+    Field: Handle
+    Type: Numeric
+    Description: Unique Parcel Identifier (Master Key)
+  
+  Vacancy Category: 
+    Field: Vacant
+    Type: String
+    Description: One of Vacant Building, Possible Vacant Building, Vacant Lot, Possible Vacant Lot
+  
+  Owner Name:
+    Field: Owner
+    Type: String
+    Description:
+    
+  Owner Category:
+    Field: OwnerCat
+    Type: String
+    Description: One of LRA, Private or Northside Regeneration
+  
+  Acreage:
+    Field: Acreage
+    Type:
+    Description:
+    
+  Square Footage:
+    Field: SqFt
+    Type:
+    Description:
+  
+  LRA Tenure:
+    Field: LRATenure
+    Type: Integer
+    Description: Number of years the LRA has owned a property
+  
+  Tax Deliquent:
+    Field: TaxDel
+    Type: Integer
+    Description: Number of years a property is tax deliquent
+  
+  Board Up Condemnation:
+    Field: CondBoardUp
+    Type: Boolean
+    Description:
+  
+  Structural Condemnation:
+    Field: CondStruct
+    Type: Boolean
+    Description:
+  
+  Building Permits:
+    Field:
+    Type: Boolean
+    Description:
+    
+  Demolition Permits:
+    Field:
+    Type: Boolean
+    Description:
+  
+  Occupancy Permits:
+    Field:
+    Type: Boolean
+    Description:
+    
+  Commercial Category:
+    Field:
+    Type:
+    Description:
+  
+  Commercial Construction:
+    Field:
+    Type:
+    Description:
+    
+  Commercial Stories:
+    Field:
+    Type:
+    Description:
+  
+  Residential Basement:
+    Field:
+    Type:
+    Description:
+    
+  Residential Basement Finished:
+    Field:
+    Type:
+    Description:
+  
+  Residential Exterior Wall:
+    Field:
+    Type:
+    Description:
+    
+  Residential Occupancy Type:
+    Field:
+    Type:
+    Description:
+  
+  Residential Stories:
+    Field:
+    Type:
+    Description:
