@@ -7,18 +7,18 @@ library(readxl)
 tmp <- tempdir() # Should be the same as in Download.R
 
 # Unzip all files in temp directory
-files <- list.files(tmp, "\\.zip")
+files <- list.files(tmp, '\\.zip')
 for (i in files) {
   unzip(file.path(tmp, i), exdir = tmp)
 }
 
 # Parse All .dbf
-for (i in list.files(tmp, "\\.dbf")){
+for (i in list.files(tmp, '\\.dbf')){
   assign(i, read.dbf(file.path(tmp, i)))
 }
 
 # Parse All .mdb
-for (i in list.files(tmp, "\\.mdb")){
+for (i in list.files(tmp, '\\.mdb')){
   # Check for multiple tables
   tables <- mdb.get(file.path(tmp, i), tables = TRUE)
   if(length(tables) > 1){
@@ -31,10 +31,16 @@ for (i in list.files(tmp, "\\.mdb")){
   
 }
 
+# Parse All .csv
+for (i in list.files(tmp, '\\.csv')) {
+  assign(i, read.csv(file.path(tmp, i)))
+}
+
 # Read Excel Files
 for (i in list.files('data', '\\.xlsx')){
   assign(i, read_xlsx(file.path('data', i)))
 }
 
-# Save entire Global Environment to Rdata
+# Save entire Global Environment to Rdata (After removing some extraneous vars)
+rm(files, i, j, tables, tmp, download)
 save(list = ls(), file = 'data/all.rda')
