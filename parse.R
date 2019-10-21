@@ -3,6 +3,7 @@
 library(Hmisc)
 library(foreign)
 library(readxl)
+library(sf)
 
 tmp <- tempdir() # Should be the same as in Download.R
 
@@ -15,6 +16,11 @@ for (i in files) {
 # Parse All .dbf
 for (i in list.files(tmp, '\\.dbf')){
   assign(i, read.dbf(file.path(tmp, i)))
+}
+
+# Parse All .shp
+for (i in list.files(tmp, '\\.shp')) {
+  assign(i, st_read(file.path(tmp, i)))
 }
 
 # Parse All .mdb
@@ -36,11 +42,17 @@ for (i in list.files(tmp, '\\.csv')) {
   assign(i, read.csv(file.path(tmp, i)))
 }
 
-# Read Excel Files
+# Parse All Excel Files
 for (i in list.files('data', '\\.xlsx')){
   assign(i, read_xlsx(file.path('data', i)))
 }
 
 # Save entire Global Environment to Rdata (After removing some extraneous vars)
-rm(files, i, j, tables, tmp, download)
+rmv <- c(grep('Cd', ls(), value = TRUE), grep('Date', ls(), value = TRUE),
+         'files', 'i', 'j','tables','tmp', 'BldgCom.xlsx', 'BldgRes.xlsx')
+rm(rmv, download, list = rmv)
+# Save Par.dbf to own file
+save(par.dbf, file = 'data/par.rda')
+rm(par.dbf)
+# Save all else
 save(list = ls(), file = 'data/all.rda')

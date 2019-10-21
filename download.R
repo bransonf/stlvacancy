@@ -12,6 +12,7 @@ download('https://www.stlouis-mo.gov/data/upload/data-files/prcl_shape.zip')
 # Parcels (Information)
 # Includes Tax Billing Information
 download('https://www.stlouis-mo.gov/data/upload/data-files/prcl.zip')
+download('https://www.stlouis-mo.gov/data/upload/data-files/par.zip')
 
 # LRA Inventory
 download('https://www.stlouis-mo.gov/data/upload/data-files/lra_public.zip')
@@ -30,6 +31,6 @@ download('https://www.stlouis-mo.gov/data/upload/data-files/forestry-maintenance
 
 # Residential Building Structural Information
 # Commercial Building Structural Information
-## (Provided, Laura Ginn)
+## (Provided, Laura Ginn, Not Used in Favor of Reproducibility)
 
 # Neighborhoods Standard Price List (NOT USED because last update 2009)
