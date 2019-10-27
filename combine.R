@@ -14,6 +14,14 @@ master <- data.frame(stringsAsFactors = FALSE,
                      Handle = as.character(prcl.dbf$HANDLE))
 
 # define handle standard (Unclear Standardization...)
+
+# Handle??
+# 1---------- Default
+# -0000------ City Block
+# -----00---- SubBlock
+# -------0--- Owner Code
+# --------000 Parcel
+
 handle <- function(block, parcel, condo = 0){ # Warning, Not vectorized!
   block %<>% as.character
   
