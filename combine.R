@@ -218,9 +218,9 @@ master %<>% mutate(
 # > table(VC$VacCatText)
 # 
 # Possible Vacant Building      Possible Vacant Lot 
-# 377                     5718 
+# 377  (-1)                  5718 (-87)
 # Vacant Building               Vacant Lot 
-# 7663                    12524 
+# 7663    (-221)                12524 (-390)
 
 
 
