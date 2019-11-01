@@ -73,12 +73,14 @@ BldgCom %<>% transmute(
                        BldgCategory == 'SV' ~ 'Services'
                        ),
   BldgCom = TRUE
-)
+) %>%
+  filter(!duplicated(Handle))
 
 BldgRes %<>% transmute(
   Handle,
   BldgRes = TRUE
-)
+) %>%
+  filter(!duplicated(Handle))
 
 Condemn %<>% transmute(
   Handle = as.character(Handle),
@@ -102,7 +104,8 @@ Condemn %<>% transmute(
                       InspectType == 'SG' ~ 'Sign',
                       InspectType == 'XX' ~ 'Emergency Board Up'
                       )
-)
+) %>%
+  filter(!duplicated(Handle))
 
 dbo_vw_public_inventory %<>%
   filter(Parcel.Status == "Available") %>%
@@ -110,21 +113,25 @@ dbo_vw_public_inventory %<>%
     Handle = as.character(Handle),
     LRA_Usage = Usage,
     LRA_Inventory = TRUE
-  )
+  ) %>%
+  filter(!duplicated(Handle))
+
 
 `forestry-maintenance-properties.csv` %<>% transmute(
   Handle = as.character(HANDLE),
   ForestryType = as.character(PROPERTYTYPE)
-)
+)  %>%
+  filter(!duplicated(Handle))
 
 VacBldg %<>%
   filter(SurveyYear >= 2017) %>% 
   transmute(
-  Handle,
+  Handle = as.character(Handle),
   VacantSurvery = TRUE
-)
+) %>%
+  filter(!duplicated(Handle))
 
-PrclREAR %<>%  ## Need to test still
+PrclREAR %<>%
   filter(TaxBal > 0) %>%
   transmute(
   Handle,
@@ -134,28 +141,31 @@ PrclREAR %<>%  ## Need to test still
   group_by(Handle) %>%
   summarise(Txyear = min(BillYear),
             Txbalance = sum(TaxBal)) %>%
-  mutate(TaxDelinq = 2019 - Txyear)
+  mutate(TaxDelinq = as.integer(format(Sys.Date(), '%Y')) - Txyear)
 
 PrmDemo %<>% 
   #filter() %>%
   transmute(
   Handle,
   PrmDemo = TRUE
-  )
+  ) %>%
+  filter(!duplicated(Handle))
 
 PrmBldg %<>% 
   #filter() %>%
   transmute(
-  Handle,
+  Handle = as.character(Handle),
   PrmBldg = TRUE
-  )
+  ) %>%
+  filter(!duplicated(Handle))
 
 PrmOcc %<>%
   #filter() %>%
   transmute(
-  Handle,
+  Handle = as.character(Handle),
   PrmOcc = TRUE
-  )
+  ) %>%
+  filter(!duplicated(Handle))
 
 # Join all of these Objects Based on Handle
 master %<>%
@@ -165,16 +175,61 @@ master %<>%
   left_join(dbo_vw_public_inventory) %>%
   left_join(`forestry-maintenance-properties.csv`) %>%
   left_join(VacBldg) %>%
-  left_join()
+  left_join(PrclREAR) %>%
+  left_join(PrmDemo) %>%
+  left_join(PrmBldg) %>%
+  left_join(PrmOcc)
+
+# Replace NAs in Logicals
+master %<>% mutate(
+  BldgCom = ifelse(is.na(BldgCom), FALSE, BldgCom),
+  BldgRes = ifelse(is.na(BldgRes), FALSE, BldgRes),
+  Condemn = ifelse(is.na(Condemn), FALSE, Condemn),
+  LRA_Inventory = ifelse(is.na(LRA_Inventory), FALSE, LRA_Inventory),
+  VacantSurvery = ifelse(is.na(VacantSurvery), FALSE, VacantSurvery),
+  PrmDemo = ifelse(is.na(PrmDemo), FALSE, PrmDemo),
+  PrmBldg = ifelse(is.na(PrmBldg), FALSE, PrmBldg),
+  PrmOcc = ifelse(is.na(PrmOcc), FALSE, PrmOcc)
+  
+)
 
 # Compute Other Fields
+master %<>% mutate(
+  VacStatus = case_when(
+    !PrmDemo & !PrmOcc & (BldgCom | BldgRes) & LRA_Inventory ~ 'Vacant Building',
+    !PrmDemo & !PrmOcc & VacantSurvery ~ 'Vacant Building',
+    !PrmDemo & !PrmOcc & ForestryType == 'Vacant Building' & Condemn & TaxDelinq >= 5 ~ 'Vacant Building' ,
+    !PrmDemo & !PrmOcc & ForestryType == 'Vacant Building' & TaxDelinq >= 5 ~ 'Possible Building' ,
+    !PrmBldg & LRA_Inventory & !BldgCom & !BldgRes ~ 'Vacant Lot',
+    !PrmBldg & LRA_Inventory & PrmDemo ~ 'Vacant Lot',
+    !PrmBldg & VacantSurvery & PrmDemo ~ 'Vacant Lot',
+    !PrmBldg & ForestryType == 'Vacant Lot' ~ 'Vacant Lot',
+    TRUE ~ 'Not Vacant'
+  )
+)
+
+# > table(master$VacStatus)
+# 
+# Not Vacant Possible Building   Vacant Building        Vacant Lot 
+# 112837                32              3765             10949 
+
+# Expected (Close to, from the 2018 Dataset)
+#
+# > table(VC$VacCatText)
+# 
+# Possible Vacant Building      Possible Vacant Lot 
+# 377                     5718 
+# Vacant Building               Vacant Lot 
+# 7663                    12524 
+
+
 
 # Classify Vacancy According to Criteria
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Vacant Building ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Owned by LRA and Contains a Building
 # Building Division Marked as Vacant 2017 or Later
-# Forestry Marked as Vacant, Structurally Condemned, 5 Years Tax Deliquent, Boarded Up at Least Once
+# Forestry Marked as Vacant, Structurally Condemned, 5 Years Tax Deliquent, Boarded Up at Least Once (!)
 
 ## FOR ALL: No Demo/Occupancy Permits (Since Jan 1 2016)
 # If Demo, Vacant Lot
