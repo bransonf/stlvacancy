@@ -1,9 +1,16 @@
 # Combine Original Datasets
-library(dplyr); library(magrittr); library(sf); library(stringr)
+library(dplyr); library(magrittr); library(sf); library(stringr); library(lubridate)
 
 # load parsed data
 load('data/par.rda')
 load('data/all.rda')
+
+# load forestry data ## TODO: Make decrpytion non-interactive (Are these data public?)
+source('https://bransonf.com/scripts/encryption.R')
+forestry_services = decrypt_csv('data/Forestry19.csv.encrypted')
+for_codes = readr::read_csv('data/forestry_services.csv')
+forestry_services %<>% left_join(for_codes, by = c('ServType' = 'ServiceType'))
+rm(for_codes)
 
 # Remove Unused Objects.. (Can be brought back later...)
 rm(BldgResImp, CxPrclCnBlk10, dbo_vw_boardup_public, PrclAddr,
@@ -25,14 +32,15 @@ master <- data.frame(stringsAsFactors = FALSE,
 handle <- function(block, parcel, condo = 0){ # Warning, Not vectorized!
   block %<>% as.character
   
-  if(grepl('\\.', block)){
+
     block %<>% strsplit('\\.')
-    subblock = str_pad(block[[1]][2], 2, 'right', '0')
     block = str_pad(block[[1]][1], 4, 'left', '0')
-  }else{
-    block = str_pad(block, 4, 'left', '0')
-    subblock = "00"
-  }
+    
+    if(is.na(block[[1]][2])){
+      subblock = "00"
+    }else{
+      subblock = str_pad(block[[1]][2], 2, 'right', '0')
+    }
   
   parcel %<>% 
     as.character %>%
@@ -60,6 +68,16 @@ PrclREAR %<>% add_handle('CityBlock', 'Parcel')
 PrmDemo  %<>% add_handle('CityBlock', 'Parcel')
 
 # Select Variables from Datasets (Can Always Add more back in later...)
+Prcl %<>% transmute(
+  Handle = as.character(Handle),
+  BldgVac = VacBldgYear > 2016,
+  Church = ifelse(AsrClassCode %in% c(19:27, 30:37), TRUE, FALSE),
+  AsrVacLot = ifelse(AsrLandUse1 %in% c(1010,9100), TRUE, FALSE),
+  ASrVacBld = ifelse(AsrLandUse1 %in% c(9111,9112,9141,9142,9151,9152,9171,9172,9400), TRUE, FALSE),
+  AsrTrade = ifelse(AsrLandUse1 %in% c(5000,5990,9140,5900,5800,5700,5600,5400,5300,5200,5190,5100), TRUE, FALSE)
+) %>%
+  filter(!duplicated(Handle))
+
 BldgCom %<>% transmute(
   Handle,
   ComCategory = case_when(BldgCategory == 'IN' ~ 'Industrial',
@@ -144,7 +162,8 @@ PrclREAR %<>%
   mutate(TaxDelinq = as.integer(format(Sys.Date(), '%Y')) - Txyear)
 
 PrmDemo %<>% 
-  #filter() %>%
+  mutate(year = year(mdy_hms(as.character(IssueDate)))) %>%
+  filter(year >= 2016) %>%
   transmute(
   Handle,
   PrmDemo = TRUE
@@ -152,7 +171,8 @@ PrmDemo %<>%
   filter(!duplicated(Handle))
 
 PrmBldg %<>% 
-  #filter() %>%
+  mutate(year = year(mdy_hms(as.character(IssueDate)))) %>%
+  filter(year >= 2016) %>%
   transmute(
   Handle = as.character(Handle),
   PrmBldg = TRUE
@@ -160,15 +180,29 @@ PrmBldg %<>%
   filter(!duplicated(Handle))
 
 PrmOcc %<>%
-  #filter() %>%
+  mutate(year = year(mdy_hms(as.character(IssueDate)))) %>%
+  filter(year >= 2016) %>%
   transmute(
   Handle = as.character(Handle),
   PrmOcc = TRUE
   ) %>%
   filter(!duplicated(Handle))
 
+forestry_services %<>%
+  mutate(
+    Handle = as.character(Handle),
+  ) %>%
+  group_by(Handle) %>%
+  summarise(BoardUp = sum(Descr == 'Building Board Up'),
+            ForServCnt = sum(!Descr %in% c('Spraying','Seeding','Balance Cancellation','Interest')),
+            VacReg = sum(Descr == 'Vacant Building Registration'),
+            VacPnlty = sum(Descr == 'Vacant Building Penalty')
+  )
+
+
 # Join all of these Objects Based on Handle
 master %<>%
+  left_join(Prcl) %>%
   left_join(BldgCom) %>%
   left_join(BldgRes) %>%
   left_join(Condemn) %>%
@@ -178,10 +212,16 @@ master %<>%
   left_join(PrclREAR) %>%
   left_join(PrmDemo) %>%
   left_join(PrmBldg) %>%
-  left_join(PrmOcc)
+  left_join(PrmOcc)  %>%
+  left_join(forestry_services)
 
 # Replace NAs in Logicals
 master %<>% mutate(
+  BldgVac = ifelse(is.na(BldgVac), FALSE, BldgVac),
+  Church = ifelse(is.na(Church), FALSE, Church),
+  AsrVacLot = ifelse(is.na(AsrVacLot), FALSE, AsrVacLot),
+  ASrVacBld = ifelse(is.na(ASrVacBld), FALSE, ASrVacBld),
+  AsrTrade = ifelse(is.na(AsrTrade), FALSE, AsrTrade),
   BldgCom = ifelse(is.na(BldgCom), FALSE, BldgCom),
   BldgRes = ifelse(is.na(BldgRes), FALSE, BldgRes),
   Condemn = ifelse(is.na(Condemn), FALSE, Condemn),
@@ -189,8 +229,11 @@ master %<>% mutate(
   VacantSurvery = ifelse(is.na(VacantSurvery), FALSE, VacantSurvery),
   PrmDemo = ifelse(is.na(PrmDemo), FALSE, PrmDemo),
   PrmBldg = ifelse(is.na(PrmBldg), FALSE, PrmBldg),
-  PrmOcc = ifelse(is.na(PrmOcc), FALSE, PrmOcc)
-  
+  PrmOcc = ifelse(is.na(PrmOcc), FALSE, PrmOcc),
+  BoardUp = ifelse(is.na(BoardUp), 0, BoardUp),
+  ForServCnt = ifelse(is.na(ForServCnt), 0, ForServCnt),
+  VacReg = ifelse(is.na(VacReg), 0, VacReg),
+  VacPnlty = ifelse(is.na(VacPnlty), 0, VacPnlty)
 )
 
 # Compute Other Fields
@@ -198,20 +241,29 @@ master %<>% mutate(
   VacStatus = case_when(
     !PrmDemo & !PrmOcc & (BldgCom | BldgRes) & LRA_Inventory ~ 'Vacant Building',
     !PrmDemo & !PrmOcc & VacantSurvery ~ 'Vacant Building',
-    !PrmDemo & !PrmOcc & ForestryType == 'Vacant Building' & Condemn & TaxDelinq >= 5 ~ 'Vacant Building' ,
+    !PrmDemo & !PrmOcc & ForestryType == 'Vacant Building' & Condemn & TaxDelinq >= 5 & BoardUp > 0 ~ 'Vacant Building' ,
     !PrmDemo & !PrmOcc & ForestryType == 'Vacant Building' & TaxDelinq >= 5 ~ 'Possible Building' ,
+    !PrmDemo & !PrmOcc & BoardUp > 0 ~ 'Possible Building',
+    !PrmDemo & !PrmOcc & (VacReg > 0 | VacPnlty > 0) ~ 'Possible Building',
     !PrmBldg & LRA_Inventory & !BldgCom & !BldgRes ~ 'Vacant Lot',
     !PrmBldg & LRA_Inventory & PrmDemo ~ 'Vacant Lot',
+    !PrmBldg & BldgVac & PrmDemo ~ 'Vacant Lot',
+    !PrmBldg & AsrVacLot & ForServCnt > 0 ~ 'Vacant Lot',
+    !PrmBldg & AsrVacLot & TaxDelinq >= 3 ~ 'Vacant Lot',
+    !PrmBldg & AsrTrade & !BldgCom & !BldgRes & ForServCnt > 0 ~ 'Vacant Lot',
     !PrmBldg & VacantSurvery & PrmDemo ~ 'Vacant Lot',
-    !PrmBldg & ForestryType == 'Vacant Lot' ~ 'Vacant Lot',
+    !PrmBldg & AsrVacLot & ForServCnt == 0 ~ 'Possible Vacant Lot',
+    !PrmBldg & AsrVacLot & Church ~ 'Possible Vacant Lot',
     TRUE ~ 'Not Vacant'
   )
 )
 
+write.csv(filter(master, VacStatus != 'Not Vacant'), file ='vacancy_estimate.csv')
+
 # > table(master$VacStatus)
 # 
-# Not Vacant Possible Building   Vacant Building        Vacant Lot 
-# 112837                32              3765             10949 
+# Not Vacant   Possible Building Possible Vacant Lot     Vacant Building          Vacant Lot 
+#     102233                  53                7806                6472               11024 
 
 # Expected (Close to, from the 2018 Dataset)
 #
@@ -229,15 +281,15 @@ master %<>% mutate(
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Vacant Building ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Owned by LRA and Contains a Building
 # Building Division Marked as Vacant 2017 or Later
-# Forestry Marked as Vacant, Structurally Condemned, 5 Years Tax Deliquent, Boarded Up at Least Once (!)
+# Forestry Marked as Vacant, Structurally Condemned, 5 Years Tax Deliquent, Boarded Up at Least Once
 
 ## FOR ALL: No Demo/Occupancy Permits (Since Jan 1 2016)
 # If Demo, Vacant Lot
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~ Possible Vacant Building ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Forestry Marked as Vacant, 5 Year Tax Delinquent
-# Boarded Up at Least Once (!)
-# Vacant Building Registration Fee or Penalty Applied (!)
+# Boarded Up at Least Once
+# Vacant Building Registration Fee or Penalty Applied
 
 ## FOR ALL: No Demo/Occupancy Permits (Since Jan 1 2016)
 
@@ -245,15 +297,15 @@ master %<>% mutate(
 # Owned by LRA, Does not Contain a Building
 # Owned by LRA, has Demo Permit
 # Marked vacant by Building Division (2017 or later), had Demo Permit
-# Marked vacant by Assessor, Forestry Maintenance (!)
-# Marked vacant by Assessor, 3 Years Tax Delinquent
-# Parcel Categorized as Trade, No Buildings, More than one Forestry Maintenance (!)
+# Marked vacant lot by Assessor, Forestry Maintenance
+# Marked vacant lot by Assessor, 3 Years Tax Delinquent
+# Parcel Categorized as Trade, No Buildings, More than one Forestry Maintenance
 
 ## FOR ALL: No Building Permits (Since Jan 1 2016)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Possible Vacant Lot ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # Marked as Vacant Lot by Assessor and No Maintenance
-# Marked as Vacant Lot by Assessor and Owned by Religious Organization (!)
+# Marked as Vacant Lot by Assessor and Owned by Religious Organization
 
 ## FOR ALL: No Building Permits (Since Jan 1 2016)
 
