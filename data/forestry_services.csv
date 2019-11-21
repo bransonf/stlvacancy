@@ -1,0 +1,19 @@
+ServiceType,	Descr
+0,	Grass Maint
+1,	Weed-Grass
+2,	Debris-Weed-Grass
+3,	Light Debris
+4,	Heavy Debris
+5,	Special Debris
+6,	Spraying
+7,	Seeding
+8,	Clean Up
+9,	Building Board Up
+10,	Demolition
+11,	Vehicle Towing
+12,	Tree Damage
+13,	Private Tree Removal
+14,	Vacant Building Registration
+15,	Vacant Building Penalty
+97,	Balance Cancellation
+99,	Interest
