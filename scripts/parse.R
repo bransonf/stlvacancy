@@ -49,7 +49,7 @@ for (i in list.files('data', '\\.xlsx')){
 
 # Save entire Global Environment to Rdata (After removing some extraneous vars)
 rmv <- c(grep('Cd', ls(), value = TRUE), grep('Date', ls(), value = TRUE),
-         'files', 'i', 'j','tables','tmp', 'BldgCom.xlsx', 'BldgRes.xlsx')
+         'files', 'i', 'j','tables','tmp')
 rm(rmv, download, list = rmv)
 # Save Par.dbf to own file
 save(par.dbf, file = 'data/par.rda')
