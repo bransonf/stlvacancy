@@ -75,7 +75,7 @@ Prcl %<>% transmute(
   AsrVacLot = ifelse(AsrLandUse1 %in% c(1010,9100), TRUE, FALSE),
   AsrVacBld = ifelse(AsrLandUse1 %in% c(9111,9112,9141,9142,9151,9152,9171,9172,9400), TRUE, FALSE),
   AsrTrade = ifelse(AsrLandUse1 %in% c(5000,5990,9140,5900,5800,5700,5600,5400,5300,5200,5190,5100), TRUE, FALSE),
-  Rmv = ifelse(AsrLandUse1 %in% c(7600, 7610, 4500) | CDALandUse1 %in% c(7600, 7610, 4500) ,TRUE, FALSE) # Parks, Highway Right of Way, Green Way(?), Landuse Projects(?)
+  Rmv = ifelse(AsrLandUse1 %in% c(7600, 7610, 4500) | CDALandUse1 %in% c(7600, 7610, 4500, 6242) ,TRUE, FALSE) # Parks, Highway Right of Way, Green Way(?), Landuse Projects(?)
   ) %>%
   filter(!duplicated(Handle))
 

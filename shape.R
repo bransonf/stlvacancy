@@ -1,6 +1,6 @@
 # Create a Spatial Object (For Exploring Satelite Imagery)
 
-library(sf);library(mapview);library(dplyr)
+library(sf);library(mapview);library(dplyr);library(magrittr)
 load('data/all.rda')
 rmf = ls()
 shp = prcl.shp
