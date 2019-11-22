@@ -1,4 +1,4 @@
-# Combine Original Datasets
+# Combine Original Datasets # Currently Takes ~ 17 Minutes
 library(dplyr); library(magrittr); library(sf); library(stringr); library(lubridate)
 
 # load parsed data
