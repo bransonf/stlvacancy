@@ -28,9 +28,3 @@ download('https://www.stlouis-mo.gov/data/upload/data-files/prmbdo.zip')
 # Property Maintenance Billing (Using Forestry Property Maintenance)
 download('https://www.stlouis-mo.gov/data/upload/data-files/forestry-maintenance-properties.csv')
 
-
-# Residential Building Structural Information
-# Commercial Building Structural Information
-## (Provided, Laura Ginn, Not Used in Favor of Reproducibility)
-
-# Neighborhoods Standard Price List (NOT USED because last update 2009)

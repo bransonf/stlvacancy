@@ -3,6 +3,7 @@
 library(Hmisc)
 library(foreign)
 library(readxl)
+library(readr)
 library(sf)
 
 tmp <- tempdir() # Should be the same as in Download.R
@@ -51,8 +52,10 @@ for (i in list.files('data', '\\.xlsx')){
 rmv <- c(grep('Cd', ls(), value = TRUE), grep('Date', ls(), value = TRUE),
          'files', 'i', 'j','tables','tmp')
 rm(rmv, download, list = rmv)
+
 # Save Par.dbf to own file
 save(par.dbf, file = 'data/par.rda')
 rm(par.dbf)
+
 # Save all else
 save(list = ls(), file = 'data/all.rda')
