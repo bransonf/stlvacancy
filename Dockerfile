@@ -1,16 +1,21 @@
 FROM rocker/geospatial
 
-TAG maintainer <bransonf@wustl.edu>
+LABEL maintainer <bransonf@wustl.edu>
 
 # Set Password
-ENV pw=""
+ENV PW=""
 
 # Install Dependencies
-apt-get install mdb-tools
-
-# Setup Cron Job to Automate
+RUN apt-get update && apt-get install -y \
+    mdb-tools \
+    cron
+    
+RUN R -e "install.packages(c('cyphr','sodium','getPass'))"
 
 # Add Files
+RUN mkdir stlvacancy
+COPY * stlvacancy
+WORKDIR stlvacancy
 
 # Execute
-
+CMD ["./scripts/full.sh"]
