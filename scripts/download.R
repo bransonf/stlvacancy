@@ -27,4 +27,3 @@ download('https://www.stlouis-mo.gov/data/upload/data-files/prmbdo.zip')
 
 # Property Maintenance Billing (Using Forestry Property Maintenance)
 download('https://www.stlouis-mo.gov/data/upload/data-files/forestry-maintenance-properties.csv')
-
