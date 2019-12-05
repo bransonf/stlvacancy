@@ -1,9 +1,9 @@
 FROM rocker/geospatial
 
-LABEL maintainer <bransonf@wustl.edu>
+LABEL maintainer="bransonf@wustl.edu"
 
 # Set Password
-ENV PW=""
+ARG PW=""
 
 # Install Dependencies
 RUN apt-get update && apt-get install -y \
