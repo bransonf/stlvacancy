@@ -36,6 +36,8 @@ for (i in list.files(tmp, '\\.mdb')){
 for (i in list.files(tmp, '\\.csv')) {
   assign(i, read.csv(file.path(tmp, i)))
 }
+# Rename Forestry Dataset
+forestry_maintenance_properties <- `forestry-maintenance-properties.csv`
 
 # Parse All Excel Files
 for (i in list.files('data', '\\.xlsx')){
@@ -49,6 +51,6 @@ for_codes = readr::read_csv('data/forestry_services.csv')
 
 # Save Parsed Data
 save(prcl.dbf, Prcl, BldgCom, BldgRes, Condemn, dbo_vw_public_inventory,
-     `forestry-maintenance-properties.csv`, VacBldg, for_codes, forestry_services,
+     forestry_maintenance_properties, VacBldg, for_codes, forestry_services,
      PrclREAR, PrmDemo, PrmBldg, PrmOcc,
      file = 'data/parsed.rda')

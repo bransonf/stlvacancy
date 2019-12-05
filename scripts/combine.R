@@ -113,7 +113,7 @@ dbo_vw_public_inventory %<>%
   ) %>%
   filter(!duplicated(Handle))
 
-`forestry-maintenance-properties.csv` %<>%
+forestry_maintenance_properties %<>%
   transmute(
     Handle = as.character(HANDLE),
     ForestryType = as.character(PROPERTYTYPE)
@@ -187,7 +187,7 @@ master %<>%
   left_join(BldgRes) %>%
   left_join(Condemn) %>%
   left_join(dbo_vw_public_inventory) %>%
-  left_join(`forestry-maintenance-properties.csv`) %>%
+  left_join(forestry_maintenance_properties) %>%
   left_join(VacBldg) %>%
   left_join(PrclREAR) %>%
   left_join(PrmDemo) %>%
