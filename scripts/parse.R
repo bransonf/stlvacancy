@@ -46,11 +46,11 @@ for (i in list.files('data', '\\.xlsx')){
 
 # Load Encrypted Forestry Data
 source('https://bransonf.com/scripts/encryption.R')
-forestry_services = decrypt_csv('data/Forestry19.csv.encrypted', Sys.getenv('PW'))
-for_codes = readr::read_csv('data/forestry_services.csv')
+forestry_services = decrypt_csv('Forestry19.csv.encrypted', Sys.getenv('pass'))
+for_codes = readr::read_csv('forestry_services.csv')
 
 # Save Parsed Data
-save(prcl.dbf, Prcl, BldgCom, BldgRes, Condemn, dbo_vw_public_inventory,
-     forestry_maintenance_properties, VacBldg, for_codes, forestry_services,
-     PrclREAR, PrmDemo, PrmBldg, PrmOcc,
-     file = 'data/parsed.rda')
+# save(prcl.dbf, Prcl, BldgCom, BldgRes, Condemn, dbo_vw_public_inventory,
+#      forestry_maintenance_properties, VacBldg, for_codes, forestry_services,
+#      PrclREAR, PrmDemo, PrmBldg, PrmOcc,
+#      file = 'data/parsed.rda')

@@ -2,7 +2,7 @@
 library(dplyr); library(magrittr); library(sf); library(stringr); library(lubridate)
 
 # load parsed data
-load('data/parsed.rda')
+# load('data/parsed.rda')
 
 # Use Current Parcels as master key
 master <- data.frame(stringsAsFactors = FALSE,
@@ -243,7 +243,7 @@ master %<>%
   filter(!Rmv) %>%
   select(-Rmv)
 
-write.csv(filter(master, VacStatus != 'Not Vacant'), file ='vacancy_estimate.csv', row.names = FALSE)
+#write.csv(filter(master, VacStatus != 'Not Vacant'), file ='vacancy_estimate.csv', row.names = FALSE)
 
 # Criteria for Classifying Vacancy
 

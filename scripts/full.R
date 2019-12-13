@@ -3,3 +3,4 @@
 source('scripts/download.R')
 source('scripts/parse.R')
 source('scripts/combine.R')
+source('scripts/database.R')
