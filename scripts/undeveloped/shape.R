@@ -13,3 +13,10 @@ sf = left_join(shp, est) %>%
   filter(!is.na(VacStatus))
 
 mapview(sf, legend = FALSE)
+
+# Save Shapes
+VacBldgShp <- filter(sf, VacStatus %in% c('Vacant Building','Possible Building')) %>% select()
+VacLotShp <- filter(sf, VacStatus %in% c('Vacant Lot','Possible Vacant Lot')) %>% select()
+
+st_write(VacLotShp, '../stl_rtm/vac_lot/vac_lot.shp')
+st_write(VacBldgShp, '../stl_rtm/vac_bldg/vac_bldg.shp')

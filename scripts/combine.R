@@ -34,7 +34,6 @@ handle <- function(data){
 # Add Handle to Datasets
 BldgCom  %<>% handle
 BldgRes  %<>% handle
-PrclAsmt %<>% handle
 PrclREAR %<>% handle
 PrmDemo  %<>% handle
 
