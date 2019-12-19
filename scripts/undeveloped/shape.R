@@ -12,6 +12,8 @@ shp %<>% transmute(Handle = as.numeric(as.character(HANDLE)))
 sf = left_join(shp, est) %>%
   filter(!is.na(VacStatus))
 
+sf %<>% st_transform(102696)
+
 mapview(sf, legend = FALSE)
 
 # Save Shapes
